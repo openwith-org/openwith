@@ -1,0 +1,47 @@
+version: 2
+
+project_name: openwith
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: .
+    binary: openwith
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+brews:
+  - repository:
+      owner: openwith-org
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/openwith-org/openwith"
+    description: "macOS TUI for managing default file associations"
+    license: "MIT"
+    install: |
+      bin.install "openwith"
+    test: |
+      assert_match version.to_s, shell_output("#{bin}/openwith --version")
