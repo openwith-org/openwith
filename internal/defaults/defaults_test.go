@@ -121,7 +121,6 @@ func TestUpsertURLSchemeUpdate(t *testing.T) {
 
 func TestPruneBackups(t *testing.T) {
 	dir := t.TempDir()
-	// Create 5 backup files
 	for i := 0; i < 5; i++ {
 		name := filepath.Join(dir, "launchservices-2024010"+string(rune('0'+i))+"-120000.plist")
 		if err := os.WriteFile(name, []byte("test"), 0600); err != nil {
@@ -171,5 +170,68 @@ func TestValidBundleIDPattern(t *testing.T) {
 		if ValidBundleIDPattern.MatchString(v) {
 			t.Errorf("expected %q to be invalid", v)
 		}
+	}
+}
+
+func TestListBackupsEmpty(t *testing.T) {
+	backups := ListBackups()
+	if backups == nil {
+		t.Log("ListBackups returned nil (no dir)")
+	}
+}
+
+func TestClientNew(t *testing.T) {
+	c := New(false)
+	if c == nil {
+		t.Error("New should return non-nil client")
+	}
+	if c.DryRun != false {
+		t.Errorf("DryRun = %v, want false", c.DryRun)
+	}
+
+	c2 := New(true)
+	if c2.DryRun != true {
+		t.Errorf("DryRun = %v, want true", c2.DryRun)
+	}
+}
+
+func TestResolveAppNameInvalid(t *testing.T) {
+	name := resolveAppName("invalid;rm -rf")
+	if name != "invalid;rm -rf" {
+		t.Errorf("resolveAppName with invalid bundle ID returned %q, want same", name)
+	}
+}
+
+func TestResolveAppNameEmpty(t *testing.T) {
+	name := resolveAppName("")
+	if name != "" {
+		t.Errorf("resolveAppName with empty string returned %q, want empty", name)
+	}
+}
+
+func TestCurrentDefaultFields(t *testing.T) {
+	cd := CurrentDefault{
+		Extension: ".json",
+		AppName:   "Example App",
+	}
+	if cd.Extension != ".json" {
+		t.Errorf("Extension = %q", cd.Extension)
+	}
+	if cd.AppName != "Example App" {
+		t.Errorf("AppName = %q", cd.AppName)
+	}
+}
+
+func TestBackupFields(t *testing.T) {
+	b := Backup{
+		Name:      "test.plist",
+		Path:     "/path/to/test.plist",
+		Timestamp: "2024-01-01 12:00:00",
+	}
+	if b.Name != "test.plist" {
+		t.Errorf("Name = %q", b.Name)
+	}
+	if b.Timestamp != "2024-01-01 12:00:00" {
+		t.Errorf("Timestamp = %q", b.Timestamp)
 	}
 }

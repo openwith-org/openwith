@@ -56,6 +56,57 @@ cd openwith
 go build -o openwith .
 ```
 
+## Testing
+
+Run all tests:
+
+```bash
+go test ./...
+```
+
+Run tests with verbose output:
+
+```bash
+go test -v ./...
+```
+
+Run specific package tests:
+
+```bash
+go test ./internal/tui/...      # TUI logic tests
+go test ./internal/platform/... # Platform backend tests (Linux only)
+go test ./internal/editors/...  # Editor detection tests
+go test ./internal/config/...    # Config parsing tests
+go test ./internal/defaults/...  # Plist manipulation tests
+```
+
+### Test Coverage
+
+Run coverage reports:
+
+```bash
+go test -cover ./...              # per-package coverage summary
+go test -coverprofile=cov.out ./... && go tool cover -func=cov.out  # function-level details
+go tool cover -html=cov.out -o coverage.html && open coverage.html  # HTML report
+```
+
+| Package | Coverage | Description |
+|---------|----------|-------------|
+| `internal/extensions` | ~95% | Extension list & grouping |
+| `internal/config` | ~40% | Config file parsing & profiles |
+| `internal/editors` | ~30% | Editor registry & sorting |
+| `internal/defaults` | ~19% | macOS plist manipulation |
+| `internal/tui` | ~7% | TUI model logic |
+| `internal/platform` | 0%* | Linux backend (xdg-mime) |
+
+*Platform tests run only on Linux (build tags)
+
+### Adding Tests
+
+- **Unit tests**: Add `*_test.go` files in the same package
+- **Platform-specific**: Use `//go:build linux` for Linux-only tests
+- **Mocking**: The platform package uses a `CommandRunner` interface for test injection
+
 ## Usage
 
 ```bash

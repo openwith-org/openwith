@@ -4,7 +4,6 @@ package platform
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -12,10 +11,18 @@ import (
 // LinuxBackend implements Backend using xdg-mime and xdg-settings.
 type LinuxBackend struct {
 	DryRun bool
+	Runner CommandRunner
 }
 
 func NewLinuxBackend(dryRun bool) *LinuxBackend {
-	return &LinuxBackend{DryRun: dryRun}
+	return &LinuxBackend{DryRun: dryRun, Runner: RealCommandRunner{}}
+}
+
+func (b *LinuxBackend) run() CommandRunner {
+	if b.Runner != nil {
+		return b.Runner
+	}
+	return RealCommandRunner{}
 }
 
 // mimeTypeForExt returns the MIME type for a file extension using xdg-mime.
@@ -66,18 +73,19 @@ func mimeTypeForExt(ext string) string {
 
 func (b *LinuxBackend) GetDefault(ext string) string {
 	mime := mimeTypeForExt(ext)
-	out, err := exec.Command("xdg-mime", "query", "default", mime).Output()
+	runner := b.run()
+	out, err := runner.Output("xdg-mime", "query", "default", mime)
 	if err != nil {
 		return "unknown"
 	}
 	desktop := strings.TrimSpace(string(out))
-	// Strip .desktop suffix for display
 	return strings.TrimSuffix(desktop, ".desktop")
 }
 
 func (b *LinuxBackend) GetDefaultBundleID(ext string) string {
 	mime := mimeTypeForExt(ext)
-	out, err := exec.Command("xdg-mime", "query", "default", mime).Output()
+	runner := b.run()
+	out, err := runner.Output("xdg-mime", "query", "default", mime)
 	if err != nil {
 		return ""
 	}
@@ -89,11 +97,13 @@ func (b *LinuxBackend) SetDefault(ext string, appID string) error {
 		return nil
 	}
 	mime := mimeTypeForExt(ext)
-	return exec.Command("xdg-mime", "default", appID, mime).Run()
+	runner := b.run()
+	return runner.Run("xdg-mime", "default", appID, mime)
 }
 
 func (b *LinuxBackend) GetDefaultBrowser() string {
-	out, err := exec.Command("xdg-settings", "get", "default-web-browser").Output()
+	runner := b.run()
+	out, err := runner.Output("xdg-settings", "get", "default-web-browser")
 	if err != nil {
 		return "unknown"
 	}
@@ -105,19 +115,19 @@ func (b *LinuxBackend) SetDefaultBrowser(appID string) error {
 	if b.DryRun {
 		return nil
 	}
-	return exec.Command("xdg-settings", "set", "default-web-browser", appID).Run()
+	runner := b.run()
+	return runner.Run("xdg-settings", "set", "default-web-browser", appID)
 }
 
 func (b *LinuxBackend) DetectApp(appID string) bool {
-	// Sanitize appID to prevent path traversal
 	appID = filepath.Base(appID)
 
-	// On Linux, check if the .desktop file exists
-	out, err := exec.Command("which", strings.TrimSuffix(appID, ".desktop")).Output()
+	runner := b.run()
+	out, err := runner.Output("which", strings.TrimSuffix(appID, ".desktop"))
 	if err == nil && len(strings.TrimSpace(string(out))) > 0 {
 		return true
 	}
-	// Also check common desktop file locations
+
 	paths := []string{
 		filepath.Join("/usr/share/applications", appID),
 		filepath.Join("/usr/local/share/applications", appID),
