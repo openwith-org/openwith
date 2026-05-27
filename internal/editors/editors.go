@@ -43,6 +43,14 @@ var Registry = []Editor{
 	{Name: "Lapce", Key: "lapce", BundleID: "dev.lapce.lapce"},
 	{Name: "Fleet", Key: "fleet", BundleID: "com.jetbrains.fleet"},
 	{Name: "CotEditor", Key: "coteditor", BundleID: "com.coteditor.CotEditor"},
+	{Name: "Kiro", Key: "kiro", BundleID: "dev.kiro.desktop"},
+	{Name: "PhpStorm", Key: "phpstorm", BundleID: "com.jetbrains.PhpStorm"},
+	{Name: "RubyMine", Key: "rubymine", BundleID: "com.jetbrains.RubyMine"},
+	{Name: "CLion", Key: "clion", BundleID: "com.jetbrains.CLion"},
+	{Name: "DataGrip", Key: "datagrip", BundleID: "com.jetbrains.DataGrip"},
+	{Name: "Rider", Key: "rider", BundleID: "com.jetbrains.rider"},
+	{Name: "Android Studio", Key: "android-studio", BundleID: "com.google.android.studio"},
+	{Name: "UltraEdit", Key: "ultraedit", BundleID: "com.idmcomp.uex"},
 }
 
 // MediaApps contains non-editor applications for media and document file types.
